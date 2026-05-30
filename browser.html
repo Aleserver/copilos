@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; }
+        body, html { 
+            background: #010101; color: #00ffcc; 
+            font-family: 'Courier New', monospace; 
+            margin: 0; padding: 0; height: 100%; 
+            display: flex; flex-direction: column; 
+            overflow: hidden; 
+        }
+        
+        /* Panou Tehnic Standard ASCII */
+        .interfata-vectoriala {
+            display: flex; flex-direction: column; gap: 8px; padding: 12px;
+            background: #000; border-bottom: 2px solid #00ffcc;
+            z-index: 10;
+        }
+        
+        .afisaj-matriceal {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0, 255, 204, 0.03); border: 1px dashed rgba(0, 255, 204, 0.3);
+            padding: 8px; font-size: 12px; letter-spacing: 2px;
+        }
+
+        .parametri-tuner {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+        }
+        .segment-tuner {
+            background: #050505; border: 1px solid #00ffcc;
+            color: #ff9933; padding: 6px; text-align: center;
+            font-weight: bold; font-size: 12px; font-family: monospace;
+        }
+        
+        /* Butonul foloseste acum blocuri ASCII [ === ] */
+        .buton-cuplare {
+            background: #00ffcc; color: #000; border: none;
+            padding: 12px; font-weight: bold; cursor: pointer;
+            font-size: 14px; text-align: center; font-family: monospace;
+        }
+        .buton-cuplare:active { background: #ff3333; color: #fff; }
+
+        /* Zona Canvas */
+        .zona-flux {
+            flex-grow: 1; position: relative;
+            background: #000; width: 100%;
+        }
+        
+        canvas {
+            display: block; width: 100%; height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="interfata-vectoriala">
+        <div class="afisaj-matriceal">
+            <span>[ ## * ## ]</span>
+            <span id="timp-cuantic">M_0x00F1</span>
+        </div>
+        
+        <div class="parametri-tuner">
+            <div class="segment-tuner" id="v1">0x3A</div>
+            <div class="segment-tuner" id="v2">433.0</div>
+            <div class="segment-tuner" id="v3">--X--</div>
+        </div>
+        
+        <button class="buton-cuplare" onclick="initiazaCuplare()">[ ===||=== ]</button>
+    </div>
+
+    <div class="zona-flux">
+        <canvas id="alienCanvas"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('alienCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let stareSistem = "idle"; // idle, incarcare, eroare
+        let linieScanare = 0;
+
+        function resize() {
+            width = canvas.width = canvas.parentElement.clientWidth;
+            height = canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        setTimeout(resize, 50);
+
+        // Update dinamic folosind doar caractere sigure din tastatura
+        setInterval(() => {
+            if(stareSistem === "idle") {
+                document.getElementById('v1').innerText = "0x" + Math.floor(Math.random()*255).toString(16).toUpperCase();
+                document.getElementById('v2').innerText = (Math.random()*900 + 100).toFixed(1);
+                document.getElementById('v3').innerText = Math.random() > 0.5 ? "[||||]" : "[-///-]";
+                document.getElementById('timp-cuantic').innerText = "M_0x" + Math.floor(Math.random()*9000 + 1000).toString(16).toUpperCase();
+            } else if (stareSistem === "incarcare") {
+                document.getElementById('timp-cuantic').innerText = ">>> >>> >>>";
+            } else {
+                document.getElementById('timp-cuanticern').innerText = "X X X";
+                document.getElementById('timp-cuantic').innerText = "!!!_ERR_!!!";
+                document.getElementById('v1').innerText = "0x00";
+                document.getElementById('v2').innerText = "0.0";
+                document.getElementById('v3').innerText = "[===]";
+            }
+        }, 300);
+
+        // Generatorul grafic ramane neschimbat (deseneaza linii pure pe ecran, deci e 100% sigur)
+        function deseneazaGlifaAlien(ctx, x, y, dim, samanta) {
+            ctx.save();
+            ctx.strokeStyle = '#ff3333';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            
+            let r = (samanta * 76543) % 100;
+            
+            let p1x = x + (r % 3) * (dim / 2);
+            let p1y = y + (Math.floor(r / 3) % 3) * (dim / 2);
+            ctx.moveTo(p1x, p1y);
+
+            let p2x = x + ((r+3) % 3) * (dim / 2);
+            let p2y = y + (Math.floor((r+6) / 3) % 3) * (dim / 2);
+            ctx.lineTo(p2x, p2y);
+
+            let p3x = x + ((r+1) % 3) * (dim / 2);
+            let p3y = y + (Math.floor((r+2) / 3) % 3) * (dim / 2);
+            ctx.lineTo(p3x, p3y);
+
+            if (r > 40) {
+                ctx.moveTo(x, y + dim/2);
+                ctx.lineTo(x + dim, y + dim/2);
+            }
+            if (r > 60) {
+                ctx.arc(x + dim/2, y + dim/2, dim/3, 0, Math.PI * 1.5);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function initiazaCuplare() {
+            if (stareSistem !== "idle") return; 
+            stareSistem = "incarcare";
+            linieScanare = 0;
+
+            setTimeout(() => {
+                stareSistem = "eroare";
+            }, 1500);
+        }
+
+        function buclaPrincipala() {
+            if (stareSistem === "idle") {
+                ctx.fillStyle = '#020202';
+                ctx.fillRect(0, 0, width, height);
+
+                ctx.strokeStyle = 'rgba(0, 255, 204, 0.04)';
+                ctx.lineWidth = 1;
+                for(let i = 0; i < width; i += 30) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke();
+                }
+                for(let j = 0; j < height; j += 30) {
+                    ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(width, j); ctx.stroke();
+                }
+
+                ctx.strokeStyle = 'rgba(0, 255, 204, 0.15)';
+                ctx.beginPath();
+                let razaPulse = Math.min(width, height) * 0.25 + Math.sin(Date.now() * 0.003) * 6;
+                ctx.arc(width / 2, height / 2, razaPulse, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(width / 2, height / 2, 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 255, 204, 0.4)';
+                ctx.fill();
+
+            } else if (stareSistem === "incarcare") {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                ctx.fillRect(0, 0, width, height);
+                
+                ctx.strokeStyle = '#ff9933';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, linieScanare);
+                ctx.lineTo(width, linieScanare);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255, 153, 51, 0.2)';
+                ctx.fillRect(30, height - 30, (linieScanare / height) * (width - 60), 6);
+                
+                linieScanare += 16;
+                if(linieScanare > height) linieScanare = 0;
+
+            } else if (stareSistem === "eroare") {
+                ctx.fillStyle = '#010101';
+                ctx.fillRect(0, 0, width, height);
+
+                ctx.strokeStyle = 'rgba(255, 51, 51, 0.08)';
+                ctx.lineWidth = 1;
+                for(let i=0; i<height; i+=6) {
+                    if(Math.random() > 0.5) {
+                        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i + (Math.random()*2-1)); ctx.stroke();
+                    }
+                }
+
+                ctx.strokeStyle = 'rgba(255, 51, 51, 0.2)';
+                ctx.beginPath();
+                ctx.moveTo(10, height * 0.4);
+                ctx.lineTo(width * 0.3, height * 0.1);
+                ctx.lineTo(width * 0.7, height * 0.4);
+                ctx.lineTo(width * 0.9, height * 0.2);
+                ctx.stroke();
+
+                let dimGlifa = 20;
+                let spatiu = 10;
+                let coloane = Math.floor((width - 40) / (dimGlifa + spatiu));
+                let randuri = 6; 
+                
+                let startX = (width - (coloane * (dimGlifa + spatiu))) / 2;
+                let startY = height * 0.35; 
+
+                for(let r=0; r<randuri; r++) {
+                    for(let c=0; c<coloane; c++) {
+                        let glitchActiv = Math.random() > 0.97 ? Date.now() : 1;
+                        let samantaUnica = (c * 13) + (r * 19) + Math.floor(Date.now()/200);
+                        
+                        deseneazaGlifaAlien(
+                            ctx, 
+                            startX + c * (dimGlifa + spatiu), 
+                            startY + r * (dimGlifa + spatiu), 
+                            dimGlifa, 
+                            samantaUnica * glitchActiv
+                        );
+                    }
+                }
+
+                // Coduri de memorie standard ASCII in colturi (fara caractere speciale ciudate)
+                ctx.fillStyle = '#ff3333';
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText("ERR_0x7F", 20, height - 20);
+                ctx.textAlign = 'right';
+                ctx.fillText("CRIT_HALT", width - 20, height - 20);
+            }
+
+            requestAnimationFrame(buclaPrincipala);
+        }
+
+        buclaPrincipala();
+    </script>
+</body>
+</html>

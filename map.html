@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>SCANNER ORBITAL - V.SIGMA</title>
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
+    <style>
+        body { margin: 0; background: #000; color: #00ffcc; font-family: 'Courier New', monospace; overflow: hidden; }
+        #globeViz { width: 100vw; height: 100vh; }
+        .hud { position: absolute; padding: 20px; pointer-events: none; z-index: 10; }
+        .top-left { top: 0; left: 0; border-left: 2px solid #00ffcc; }
+        .bottom-right { bottom: 0; right: 0; text-align: right; border-right: 2px solid #00ffcc; }
+        .glitch { animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="hud top-left">
+        STATUS: ACTIV<br>
+        SISTEM: SFERA GEODEZICA<br>
+        COORDONATE: [LOCKED]
+    </div>
+
+    <div class="hud bottom-right">
+        SEMNAL: 98%<br>
+        BUCURESTI: DETECTAT<br>
+        <span class="glitch">SCANNING...</span>
+    </div>
+
+    <div id="globeViz"></div>
+
+    <script>
+        const marker = [{ lat: 44.4323, lng: 26.1063 }];
+
+        const myGlobe = Globe()(document.getElementById('globeViz'))
+            .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+            .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+            .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+            // Stil SCIFI: Punct cu impuls
+            .htmlElementsData(marker)
+            .htmlElement(() => {
+                const el = document.createElement('div');
+                el.innerHTML = '<div style="width:15px; height:15px; border:2px solid #ffcc00; border-radius:50%; animation: pulse 1.5s infinite;"></div>';
+                return el;
+            })
+            .autoRotate(true)
+            .autoRotateSpeed(0.8)
+            .showAtmosphere(true)
+            .atmosphereColor('#00ffcc')
+            .atmosphereAltitude(0.2);
+
+        // Stil pentru pulsul radar
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }`;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

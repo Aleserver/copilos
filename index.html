@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Copilonian</title>
+    <style>
+        * { box-sizing: border-box; }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; font-family: 'Courier New', monospace; overflow: hidden;
+        }
+
+        /* Container global pentru blocarea orientarii */
+        .wrapper-sistem {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Ignorare rotatie: daca se trece in landscape, tot containerul este rotit inapoi */
+        @media (orientation: landscape) {
+            .wrapper-sistem {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                width: 100vh;
+                height: 100vw;
+                transform: translate(-50%, -50%) rotate(-90deg);
+                transform-origin: center;
+            }
+        }
+
+        .ecran { display: none; width: 100%; height: 100%; position: relative; }
+        
+        /* Ecranul 1: Sincronizare folosind aceeasi librarie grafica simpla */
+        #ecran-initial { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            color: #00ffcc; 
+            text-align: center; 
+            padding: 20px;
+            border: 2px solid #00ffcc;
+            margin: 0;
+            height: 100%;
+        }
+
+        .titlu-terminal {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        /* Butonul fals integrat in stilul celorlalte butoane din sistem */
+        .buton-sincronizare { 
+            border: 1px solid #00ffcc; 
+            padding: 12px 24px; 
+            text-align: center; 
+            cursor: pointer; 
+            background: rgba(0, 255, 204, 0.05); 
+            font-weight: bold; 
+            font-size: 11px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .buton-sincronizare:active { 
+            background: #00ffcc; 
+            color: #000; 
+        }
+        
+        /* Ecranul 2: Home fals */
+        #ecran-home { background-image: url('home.jpeg'); background-size: cover; background-position: center; }
+        
+        /* Ecranul 3: Samsung Boot */
+        #ecran-boot { background-image: url('boot.webp'); background-size: cover; background-position: center; background-color: #000; }
+        
+        /* Iframe */
+        #iframe-alien { display: none; width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper-sistem" id="sistem-container">
+
+    <div id="ecran-initial" class="ecran">
+        <div class="titlu-terminal">ARHITECTURA SI LIMBA DESCIFRATA</div>
+        <div class="buton-sincronizare" onclick="pornesteHacking()">Sincronizare</div>
+    </div>
+
+    <div id="ecran-home" class="ecran"></div>
+
+    <div id="ecran-oprit" class="ecran" style="background-color: #000;"></div>
+
+    <div id="ecran-boot" class="ecran"></div>
+
+    <iframe id="iframe-alien" src=""></iframe>
+
+</div>
+
+<script>
+    // Afiseaza primul ecran la pornire
+    document.getElementById('ecran-initial').style.display = 'flex';
+
+    function pornesteHacking() {
+        let elem = document.documentElement;
+        let container = document.getElementById('sistem-container');
+
+        // Activare Fullscreen
+        if (elem.requestFullscreen) elem.requestFullscreen();
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+
+        // 1. Afiseaza ecranul Home fals pentru 1.5 secunde
+        document.getElementById('ecran-initial').style.display = 'none';
+        document.getElementById('ecran-home').style.display = 'block';
+
+        setTimeout(() => {
+            // 2. Crash: ecran negru si vibratie
+            document.getElementById('ecran-home').style.display = 'none';
+            document.getElementById('ecran-oprit').style.display = 'block';
+            if (navigator.vibrate) navigator.vibrate(1200);
+
+            setTimeout(() => {
+                // 3. Flash alb rapid de 100ms
+                document.body.style.backgroundColor = "#fff";
+                container.style.backgroundColor = "#fff";
+                document.getElementById('ecran-oprit').style.display = 'none';
+                
+                setTimeout(() => {
+                    // 4. Boot Interfata Samsung
+                    document.body.style.backgroundColor = "#000";
+                    container.style.backgroundColor = "#000";
+                    document.getElementById('ecran-boot').style.display = 'block';
+                    if (navigator.vibrate) navigator.vibrate(80);
+                    
+                    // 5. Incarcare Alien OS in iframe
+                    setTimeout(() => {
+                        document.getElementById('ecran-boot').style.display = 'none';
+                        let iframe = document.getElementById('iframe-alien');
+                        iframe.src = "alien.html";
+                        iframe.style.display = "block";
+                    }, 3500);
+                }, 100);
+            }, 2000);
+        }, 1500);
+    }
+</script>
+</body>
+</html>

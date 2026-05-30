@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Copilonian - Unitate Centrala</title>
+    <style>
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: #00ffcc; font-family: 'Courier New', monospace; overflow: hidden; }
+        
+        .ecran-terminal { display: flex; flex-direction: column; height: 100vh; width: 100vw; padding: 10px; transition: transform 0.2s ease; }
+        .header-sistem { display: flex; justify-content: space-between; border-bottom: 2px solid #00ffcc; padding-bottom: 5px; font-size: 11px; font-weight: bold; }
+        
+        .meniu-aplicatii { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0; }
+        .buton-aplicatie { border: 1px solid #00ffcc; padding: 8px 3px; text-align: center; cursor: pointer; background: rgba(0, 255, 204, 0.05); font-weight: bold; font-size: 10px; text-transform: uppercase; }
+        .buton-aplicatie:active { background: #00ffcc; color: #000; }
+        .activa { background: rgba(0, 255, 204, 0.25); border-style: double; }
+        
+        .container-iframe { flex-grow: 1; border: 1px dashed #00ffcc; background: #020202; position: relative; }
+        #display-frame { width: 100%; height: 100%; border: none; }
+
+        /* Tastatura Custom */
+        #custom-keyboard {
+            display: none; grid-template-columns: repeat(10, 1fr); gap: 2px;
+            background: #000; padding: 5px; border-top: 2px solid #00ffcc;
+        }
+        .key { border: 1px solid #00ffcc; padding: 8px 0; text-align: center; cursor: pointer; color: #00ffcc; font-size: 12px; }
+        .key:active { background: #00ffcc; color: #000; }
+        .wide { grid-column: span 2; }
+
+        @media (orientation: landscape) {
+            .ecran-terminal { position: fixed; top: 50%; left: 50%; width: 100vh; height: 100vw; transform: translate(-50%, -50%) rotate(-90deg); transform-origin: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ecran-terminal" id="main-terminal">
+        <div class="header-sistem">
+            <span>Sistem deturnat</span>
+            <span id="baterie">BATERIE: --%</span>
+        </div>
+
+        <div class="meniu-aplicatii">
+            <div class="buton-aplicatie activa" onclick="incarcaApp('chat.html', this)">CHAT</div>
+            <div class="buton-aplicatie" onclick="incarcaApp('map.html', this)">GLOB</div>
+            <div class="buton-aplicatie" onclick="incarcaApp('bousola.html', this)">BUSOLA</div>
+            <div class="buton-aplicatie" onclick="incarcaApp('browser.html', this)">BROWSER</div>
+            <div class="buton-aplicatie" onclick="incarcaApp('consola.html', this)">CONSOLA</div>
+            <div class="buton-aplicatie" onclick="rebootSistem()">REBOOT</div>
+        </div>
+
+        <div class="container-iframe">
+            <iframe id="display-frame" src="chat.html"></iframe>
+        </div>
+
+        <div id="custom-keyboard">
+            <script>
+                const keys = "1234567890QWERTYUIOPASDFGHJKLZXCVBNM".split('');
+                keys.forEach(k => document.write(`<div class="key" onclick="sendKey('${k}')">${k}</div>`));
+            </script>
+            <div class="key wide" onclick="sendKey('BACKSPACE')">DEL</div>
+            <div class="key wide" onclick="sendKey('SPACE')">SPACE</div>
+            <div class="key wide" onclick="sendKey('ENTER')">ENTER</div>
+        </div>
+    </div>
+
+    <script>
+        // Logica sistemului
+        function blocheazaOrientare() { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); }
+        window.addEventListener('load', blocheazaOrientare);
+
+        function actualizeazaBaterie(battery) { document.getElementById('baterie').innerText = `BATERIE: ${Math.round(battery.level * 100)}%`; }
+        if ('getBattery' in navigator) navigator.getBattery().then(b => { actualizeazaBaterie(b); b.addEventListener('levelchange', () => actualizeazaBaterie(b)); });
+        else document.getElementById('baterie').innerText = `BATERIE: CALIBRATA`;
+
+        function incarcaApp(pagina, el) {
+            document.getElementById('display-frame').src = pagina;
+            document.querySelectorAll('.buton-aplicatie').forEach(b => b.classList.remove('activa'));
+            el.classList.add('activa');
+        }
+
+        function rebootSistem() { window.location.reload(); }
+
+        // Logica Tastaturii
+        const kbd = document.getElementById('custom-keyboard');
+
+        // Ascundere la click in afara tastaturii
+        document.getElementById('main-terminal').addEventListener('click', (e) => {
+            if (kbd.style.display === 'grid' && !e.target.classList.contains('key')) {
+                kbd.style.display = 'none';
+            }
+        });
+
+        // Comunicare cu Iframe
+        function sendKey(val) {
+            event.stopPropagation(); // Previne inchiderea tastaturii cand apesi pe o tasta
+            document.getElementById('display-frame').contentWindow.postMessage({type: 'INPUT', value: val}, '*');
+        }
+
+        window.addEventListener('message', (e) => {
+            if(e.data.action === 'toggleKeyboard') {
+                kbd.style.display = e.data.show ? 'grid' : 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; }
+        body, html { 
+            background: #020202; color: #00ffcc; 
+            font-family: 'Courier New', monospace; 
+            margin: 0; padding: 0; height: 100%; 
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; 
+            overflow: hidden; 
+        }
+        .container { text-align: center; width: 100%; max-width: 360px; padding: 20px; }
+        
+        /* Grafica Busolei */
+        .busola-cerc {
+            width: 200px; height: 200px;
+            border: 2px solid #00ffcc; border-radius: 50%;
+            margin: 30px auto; position: relative;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
+        }
+        .busola-cerc::before {
+            content: 'N'; position: absolute; top: 5px; font-weight: bold; font-size: 14px;
+        }
+        .linie-ax {
+            position: absolute; width: 100%; height: 1px; background: rgba(0, 255, 204, 0.15);
+        }
+        .linie-ax.verticala { transform: rotate(90deg); }
+        
+        .ac-busola {
+            width: 4px; height: 160px;
+            background: linear-gradient(to bottom, #ff9933 50%, #00ffcc 50%);
+            position: absolute;
+            transition: transform 0.1s ease-out;
+            transform: rotate(0deg);
+        }
+
+        .date-senzor { font-size: 11px; text-transform: uppercase; margin-top: 10px; color: #888; }
+        .valoare { color: #ff9933; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <p style="font-size: 13px; letter-spacing: 1px; margin: 0;">[ LOCALIZATOR REZONAN?A GRAVITA?IONALA ]</p>
+        
+        <div class="busola-cerc">
+            <div class="linie-ax"></div>
+            <div class="linie-ax verticala"></div>
+            <div class="ac-busola" id="ac"></div>
+        </div>
+
+        <div style="text-align: left; font-size: 12px; line-height: 1.6; border-left: 2px solid #00ffcc; padding-left: 10px;">
+            DIVERGEN?A AXA: <span class="valoare" id="txt-grade">0.00°</span><br>
+            CÂMP MAGNETIC: <span class="valoare" id="txt-uT">48.12 µT</span><br>
+            STATUS FLUX: STABIL
+        </div>
+        <p class="date-senzor">Senzori giroscopici activi</p>
+    </div>
+
+    <script>
+        const ac = document.getElementById('ac');
+        const txtGrade = document.getElementById('txt-grade');
+        const txtUt = document.getElementById('txt-uT');
+
+        // Încercam sa citim giroscopul real al telefonului Ioanei
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', function(event) {
+                // alpha reprezinta rota?ia în jurul axei Z (direc?ia busolei)
+                if (event.alpha !== null) {
+                    let grade = Math.round(event.alpha);
+                    ac.style.transform = `rotate(${-grade}deg)`;
+                    txtGrade.innerText = grade + ".00°";
+                    
+                    // Modificam u?or micro-teslele în func?ie de mi?care pentru realism
+                    let fakeUt = (48.12 + (event.beta ? event.beta / 50 : 0)).toFixed(2);
+                    txtUt.innerText = fakeUt + " µT";
+                }
+            }, true);
+        }
+
+        // Rezerva (Fallback): Daca e pe PC sau senzorul e blocat, busola pulseaza fin singura
+        let unghiFals = 0;
+        setInterval(() => {
+            if (txtGrade.innerText === "0.00°") {
+                unghiFals = (unghiFals + 1) % 360;
+                let oscilatie = unghiFals + Math.sin(Date.now() * 0.002) * 5;
+                ac.style.transform = `rotate(${oscilatie}deg)`;
+                txtUt.innerText = (47.50 + Math.sin(Date.now() * 0.001) * 0.8).toFixed(2) + " µT";
+            }
+        }, 50);
+    </script>
+</body>
+</html>
